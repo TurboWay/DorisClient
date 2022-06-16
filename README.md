@@ -1,5 +1,7 @@
 # DorisClient
 
+python for apache-doris
+
 # 安装
 
 ```shell

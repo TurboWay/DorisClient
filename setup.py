@@ -19,7 +19,7 @@ with open("README.md", "r", encoding="utf-8") as fh:
 setup(
     name = "DorisClient",
     version = "0.1.1",
-    description = "python for doris",
+    description = "python for apache-doris",
     license = "MIT Licence",
     long_description=long_description,
     long_description_content_type="text/markdown",
