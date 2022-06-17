@@ -6,7 +6,6 @@
 # @Describe:
 
 """
-打包流程：
 python setup.py sdist bdist_wheel
 twine upload dist/*
 """
@@ -18,9 +17,9 @@ with open("README.md", "r", encoding="utf-8") as fh:
 
 setup(
     name = "DorisClient",
-    version = "0.1.6",
+    version = "0.1.10",
     description = "python for apache-doris",
-    license = "MIT Licence",
+    license = "Apache License 2.0",
     long_description=long_description,
     long_description_content_type="text/markdown",
     url = "https://github.com/TurboWay/DorisClient",
