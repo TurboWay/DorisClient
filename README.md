@@ -34,7 +34,9 @@ PROPERTIES (
 ## 导入
 
 ```python
-from DorisClient import DorisSession
+from DorisClient import DorisSession, logger as DorisLogger
+
+# DorisLogger.setLevel('ERROR')  # 日志输出，默认INFO级别
 
 doris_cfg = {
     'fe_servers': ['10.211.7.131:8030', '10.211.7.132:8030', '10.211.7.133:8030'],
@@ -43,6 +45,7 @@ doris_cfg = {
     'passwd': '123456',
 }
 doris = DorisSession(**doris_cfg)
+doris.conn.close()  # 默认会创建一个连接，用于执行sql，不需要的话，可以关闭
 
 # 一般导入
 data = [

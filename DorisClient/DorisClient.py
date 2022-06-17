@@ -141,4 +141,7 @@ class DorisSession:
             return cur.fetchall()
 
     def __del__(self):
-        self.conn.close()
+        try:
+            self.conn.close()
+        except:
+            ...
