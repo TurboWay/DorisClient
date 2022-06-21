@@ -17,7 +17,7 @@ with open("README.md", "r", encoding="utf-8") as fh:
 
 setup(
     name = "DorisClient",
-    version = "0.1.10",
+    version = "0.1.11",
     description = "python for apache-doris",
     license = "Apache License 2.0",
     long_description=long_description,
@@ -28,6 +28,6 @@ setup(
     packages = find_packages(),
     include_package_data = True,
     platforms = "any",
-    install_requires = ["requests", "mysqlclient"]
+    install_requires = ["requests", "PyMySQL"]
 )
 
