@@ -34,7 +34,7 @@ PROPERTIES (
 ## streamload
 
 ```python
-from DorisClient import DorisSession, logger as DorisLogger
+from DorisClient import DorisSession, DorisLogger, Logger
 
 # DorisLogger.setLevel('ERROR')  # default:INFO
 
@@ -45,7 +45,6 @@ doris_cfg = {
     'passwd': '123456',
 }
 doris = DorisSession(**doris_cfg)
-doris.conn.close()  # a doris connection will be created to execute SQL. If not necessary, it can be closed
 
 # append
 data = [
