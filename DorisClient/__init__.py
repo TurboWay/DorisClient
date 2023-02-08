@@ -18,5 +18,8 @@
 # specific language governing permissions and limitations
 # under the License.
 
-from .DorisClient import DorisSession, DorisLogger, Logger
+# document >> https://github.com/TurboWay/DorisClient
+
+from .BaseSession import DorisSession, DorisLogger, Logger
+from .MetaSession import DorisMeta
 

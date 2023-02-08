@@ -52,13 +52,13 @@ data = [
     {'id': '2', 'shop_code': 'sdd2', 'sale_amount': '5'},
     {'id': '3', 'shop_code': 'sdd3', 'sale_amount': '3'},
 ]
-doris.streamload(table='streamload_test', json_array=data)
+doris.streamload(table='streamload_test', dict_array=data)
 
 # delete
 data = [
     {'id': '1'},
 ]
-doris.streamload(table='streamload_test', json_array=data, merge_type='DELETE')
+doris.streamload(table='streamload_test', dict_array=data, merge_type='DELETE')
 
 # merge
 data = [
@@ -66,7 +66,7 @@ data = [
     {'id': '2', 'shop_code': 'sdd2', 'sale_amount': '5', 'delete_flag': 1},
     {'id': '3', 'shop_code': 'sdd3', 'sale_amount': '3', 'delete_flag': 1},
 ]
-doris.streamload(table='streamload_test', json_array=data, merge_type='MERGE', delete='delete_flag=1')
+doris.streamload(table='streamload_test', dict_array=data, merge_type='MERGE', delete='delete_flag=1')
 
 # Sequence append
 data = [
@@ -74,7 +74,7 @@ data = [
     {'id': '1', 'shop_code': 'sdd2', 'sale_amount': '5', 'source_sequence': 2},
     {'id': '2', 'shop_code': 'sdd3', 'sale_amount': '3', 'source_sequence': 1},
 ]
-doris.streamload(table='streamload_test', json_array=data, sequence_col='source_sequence')
+doris.streamload(table='streamload_test', dict_array=data, sequence_col='source_sequence')
 
 ## Sequence merge
 data = [
@@ -82,7 +82,7 @@ data = [
     {'id': '1', 'shop_code': 'sdd2', 'sale_amount': '5', 'source_sequence': 120, 'delete_flag': 0},
     {'id': '2', 'shop_code': 'sdd3', 'sale_amount': '3', 'source_sequence': 100, 'delete_flag': 1},
 ]
-doris.streamload(table='streamload_test', json_array=data, sequence_col='source_sequence', merge_type='MERGE',
+doris.streamload(table='streamload_test', dict_array=data, sequence_col='source_sequence', merge_type='MERGE',
                  delete='delete_flag=1')
 ```
 
@@ -107,4 +107,31 @@ print(rows)
 doris.execute('truncate table streamload_test')
 ```
 
+## collect meta
 
+```python
+from DorisClient import DorisMeta
+
+doris_cfg = {
+    'fe_servers': ['10.211.7.131:8030', '10.211.7.132:8030', '10.211.7.133:8030'],
+    'database': 'testdb',
+    'user': 'test',
+    'passwd': '123456',
+}
+dm = DorisMeta(**doris_cfg)
+
+# auto create table for collect doris meta
+# 1. meta_table for saving all table meta
+# 2. meta_tablet for saving all tablet meta
+# 3. meta_partition for saving all partition meta
+dm.create_tables()
+
+# collect table meta >> meta_table
+dm.collect_table()
+
+# collect tablet meta >> meta_tablet
+dm.collect_tablet()
+
+# collect partition meta >> meta_partition
+dm.collect_partition()
+```

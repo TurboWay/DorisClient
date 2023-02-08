@@ -8,6 +8,7 @@
 """
 python setup.py sdist bdist_wheel
 twine upload dist/*
+twine upload --repository testpypi dist/*
 """
 
 from setuptools import setup, find_packages
@@ -17,7 +18,7 @@ with open("README.md", "r", encoding="utf-8") as fh:
 
 setup(
     name = "DorisClient",
-    version = "0.1.13",
+    version = "0.2.1",
     description = "python for apache-doris",
     license = "Apache License 2.0",
     long_description=long_description,
