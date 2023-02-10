@@ -53,7 +53,7 @@ PROPERTIES (
 """
 
 MetaDDL_Tablet = """
-CREATE TABLE `meta_tablet` (
+CREATE TABLE IF NOT EXISTS `meta_tablet` (
   `database_name` varchar(64) NULL COMMENT "databse name",
   `table_name` varchar(128) NULL COMMENT "table name",
   `TabletId` bigint(20) NULL COMMENT "",
