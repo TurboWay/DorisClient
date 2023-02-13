@@ -20,6 +20,6 @@
 
 # document >> https://github.com/TurboWay/DorisClient
 
-from .BaseSession import DorisSession, DorisLogger, Logger
+from .BaseSession import DorisSession, DorisLogger, Logger, Retry
 from .MetaSession import DorisMeta
 

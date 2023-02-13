@@ -55,7 +55,7 @@ def Logger(name=__name__, filename=None, level='INFO', filemode='a'):
 DorisLogger = Logger(name='DorisClient')
 
 
-def retry(*args, **kwargs):
+def Retry(*args, **kwargs):
     max_retry = kwargs.get('max_retry', 3)
     retry_diff_seconds = kwargs.get('retry_diff_seconds', 3)
 
@@ -120,18 +120,7 @@ class DorisSession:
         else:
             raise Exception("No available BE nodes can be obtained. Please check configuration")
 
-    @retry(max_retry=3, retry_diff_seconds=3)
-    def streamload(self, table, dict_array, **kwargs):
-        """
-        :param table: target table
-        :param dict_array: dict list ,eg: [{col1:val1}, {col2:val2}]
-        :param kwargs:
-             merge_type：APPEND，DELETE，MERGE
-             delete：Only meaningful under MERGE, indicating the deletion condition of the data function_column.
-             sequence_col: Only applicable to UNIQUE_KEYS. Under the same key column,
-                           ensure that the value column is REPLACEed according to the source_sequence column.
-        :return:
-        """
+    def _streamload(self, table, dict_array, **kwargs):
         assert isinstance(dict_array, list), 'TypeError: dict_array must be list'
         if not dict_array:
             DorisLogger.warning(f"Nothing has been send, because dict_array was empty")
@@ -169,6 +158,21 @@ class DorisSession:
         else:
             DorisLogger.error(response.text)
             return False
+
+    @Retry(max_retry=3, retry_diff_seconds=3)
+    def streamload(self, table, dict_array, **kwargs):
+        # document >> https://github.com/TurboWay/DorisClient
+        """
+        :param table: target table
+        :param dict_array: dict list ,eg: [{col1:val1}, {col2:val2}]
+        :param kwargs:
+             merge_type：APPEND，DELETE，MERGE
+             delete：Only meaningful under MERGE, indicating the deletion condition of the data function_column.
+             sequence_col: Only applicable to UNIQUE_KEYS. Under the same key column,
+                           ensure that the value column is REPLACEed according to the source_sequence column.
+        :return:
+        """
+        self._streamload(table, dict_array, **kwargs)
 
     def execute(self, sql, args=None):
         self._connect()
