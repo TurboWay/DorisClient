@@ -100,7 +100,7 @@ class MyDoris(DorisSession):
 
     @Retry(max_retry=max_retry, retry_diff_seconds=retry_diff_seconds)
     def streamload(self, table, dict_array, **kwargs):
-        self._streamload(table, dict_array, **kwargs)
+        return self._streamload(table, dict_array, **kwargs)
 
 
 doris = MyDoris(**doris_cfg)

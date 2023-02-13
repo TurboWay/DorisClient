@@ -172,7 +172,7 @@ class DorisSession:
                            ensure that the value column is REPLACEed according to the source_sequence column.
         :return:
         """
-        self._streamload(table, dict_array, **kwargs)
+        return self._streamload(table, dict_array, **kwargs)
 
     def execute(self, sql, args=None):
         self._connect()
