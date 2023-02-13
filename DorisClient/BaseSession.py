@@ -21,7 +21,7 @@
 import base64
 import json
 import time
-
+import uuid
 import pymysql
 import requests
 import logging
@@ -105,7 +105,7 @@ class DorisSession:
             self.conn = pymysql.connect(**self.mysql_cfg)
 
     def _label(self, table):
-        return f"{table}_{time.strftime('%Y%m%d_%H%M%S', time.localtime())}"
+        return f"{table}-{uuid.uuid1()}"
 
     def _columns(self, keys):
         return ','.join([f'`{column}`' for column in keys])
