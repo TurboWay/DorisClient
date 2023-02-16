@@ -44,7 +44,7 @@ CREATE TABLE IF NOT EXISTS `meta_table` (
   `update_time` datetime NULL COMMENT "update_time"
 ) ENGINE=OLAP
 COMMENT "meta of tables/views"
-DISTRIBUTED BY HASH(`table_name`) BUCKETS 2
+DISTRIBUTED BY HASH(`table_name`) BUCKETS 1
 PROPERTIES (
 "replication_allocation" = "tag.location.default: 3",
 "in_memory" = "false",
@@ -77,7 +77,7 @@ CREATE TABLE IF NOT EXISTS `meta_tablet` (
 ) ENGINE=OLAP
 DUPLICATE KEY(`database_name`)
 COMMENT "meta of table tablets"
-DISTRIBUTED BY HASH(`table_name`) BUCKETS 2
+DISTRIBUTED BY HASH(`table_name`) BUCKETS 1
 PROPERTIES (
 "replication_allocation" = "tag.location.default: 3",
 "in_memory" = "false",
@@ -108,7 +108,25 @@ CREATE TABLE IF NOT EXISTS `meta_partition` (
   `update_time` datetime NULL COMMENT "update time"
 ) ENGINE=OLAP
 COMMENT "meta of table partitions"
-DISTRIBUTED BY HASH(`table_name`) BUCKETS 2
+DISTRIBUTED BY HASH(`table_name`) BUCKETS 1
+PROPERTIES (
+"replication_allocation" = "tag.location.default: 3",
+"in_memory" = "false",
+"storage_format" = "V2"
+);
+"""
+
+MetaDDL_Size = """
+CREATE TABLE IF NOT EXISTS `meta_size` (
+  `database_name` varchar(64) NULL COMMENT "databse name",
+  `table_name` varchar(128) NULL COMMENT "table name",
+  `Size` varchar(128) NULL COMMENT "",
+  `SizeByte` double NULL COMMENT "Size by Byte for order or analyze",
+  `ReplicaCount` bigint NULL COMMENT "",
+  `update_time` datetime NULL COMMENT "update time"
+) ENGINE=OLAP
+COMMENT "meta of table size"
+DISTRIBUTED BY HASH(`table_name`) BUCKETS 1
 PROPERTIES (
 "replication_allocation" = "tag.location.default: 3",
 "in_memory" = "false",

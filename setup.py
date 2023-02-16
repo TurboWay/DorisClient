@@ -18,7 +18,7 @@ with open("README.md", "r", encoding="utf-8") as fh:
 
 setup(
     name = "DorisClient",
-    version = "0.2.6",
+    version = "0.2.7",
     description = "python for apache-doris",
     license = "Apache License 2.0",
     long_description=long_description,

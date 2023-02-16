@@ -52,13 +52,13 @@ data = [
     {'id': '2', 'shop_code': 'sdd2', 'sale_amount': '5'},
     {'id': '3', 'shop_code': 'sdd3', 'sale_amount': '3'},
 ]
-doris.streamload(table='streamload_test', dict_array=data)
+doris.streamload('streamload_test', data)
 
 # delete
 data = [
     {'id': '1'},
 ]
-doris.streamload(table='streamload_test', dict_array=data, merge_type='DELETE')
+doris.streamload('streamload_test', data, merge_type='DELETE')
 
 # merge
 data = [
@@ -66,7 +66,7 @@ data = [
     {'id': '2', 'shop_code': 'sdd2', 'sale_amount': '5', 'delete_flag': 1},
     {'id': '3', 'shop_code': 'sdd3', 'sale_amount': '3', 'delete_flag': 1},
 ]
-doris.streamload(table='streamload_test', dict_array=data, merge_type='MERGE', delete='delete_flag=1')
+doris.streamload('streamload_test', data, merge_type='MERGE', delete='delete_flag=1')
 
 # Sequence append
 data = [
@@ -74,7 +74,7 @@ data = [
     {'id': '1', 'shop_code': 'sdd2', 'sale_amount': '5', 'source_sequence': 2},
     {'id': '2', 'shop_code': 'sdd3', 'sale_amount': '3', 'source_sequence': 1},
 ]
-doris.streamload(table='streamload_test', dict_array=data, sequence_col='source_sequence')
+doris.streamload('streamload_test', data, sequence_col='source_sequence')
 
 # Sequence merge
 data = [
@@ -82,12 +82,13 @@ data = [
     {'id': '1', 'shop_code': 'sdd2', 'sale_amount': '5', 'source_sequence': 120, 'delete_flag': 0},
     {'id': '2', 'shop_code': 'sdd3', 'sale_amount': '3', 'source_sequence': 100, 'delete_flag': 1},
 ]
-doris.streamload(table='streamload_test', dict_array=data, sequence_col='source_sequence', merge_type='MERGE',
+doris.streamload('streamload_test', data, sequence_col='source_sequence', merge_type='MERGE',
                  delete='delete_flag=1')
+
 
 # streamload default retry config:  max_retry=3, retry_diff_seconds=3
 # if you don't want to retry, "_streamload" can help you
-doris._streamload(table='streamload_test', dict_array=data)
+doris._streamload('streamload_test', data)
 
 # if you want to changed retry config, follow code will work 
 from DorisClient import DorisSession, Retry
@@ -104,7 +105,7 @@ class MyDoris(DorisSession):
 
 
 doris = MyDoris(**doris_cfg)
-doris.streamload(table='streamload_test', dict_array=data)
+doris.streamload('streamload_test', data)
 ```
 
 ## execute doris-sql
@@ -151,6 +152,7 @@ dm = DorisMeta(**doris_cfg)
 # 1. meta_table for saving all table meta
 # 2. meta_tablet for saving all tablet meta
 # 3. meta_partition for saving all partition meta
+# 4. meta_size for saving all table size meta
 dm.create_tables()
 
 # collect table meta >> meta_table
@@ -161,4 +163,7 @@ dm.collect_tablet()
 
 # collect partition meta >> meta_partition
 dm.collect_partition()
+
+# collect table size meta >> meta_size
+dm.collect_size()
 ```
