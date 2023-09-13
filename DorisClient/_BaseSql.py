@@ -96,7 +96,7 @@ CREATE TABLE IF NOT EXISTS `meta_partition` (
   `State` varchar(64) NULL COMMENT "",
   `PartitionKey` varchar(64) NULL COMMENT "",
   `Range` varchar(500) NULL COMMENT "",
-  `DistributionKey` varchar(64) NULL COMMENT "",
+  `DistributionKey` varchar(2046) NULL COMMENT "",
   `Buckets` int(11) NULL COMMENT "",
   `ReplicationNum` int(11) NULL COMMENT "",
   `StorageMedium` varchar(64) NULL COMMENT "",

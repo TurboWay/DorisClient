@@ -89,10 +89,15 @@ class DorisMeta(DorisSession):
                 DorisLogger.warning(f"{database_name}.{table_name} meta error, {e}")
             finally:
                 if len(data) >= 30000:
-                    self.streamload(meta_table, data)
-                    data.clear()
+                    if self.streamload(meta_table, data):
+                       data.clear()
+                    else:
+                        raise Exception("streamload error !!!")
         if data:
-            self.streamload(meta_table, data)
+            if self.streamload(meta_table, data):
+                ...
+            else:
+                raise Exception("streamload error !!!")
 
     def collect_tablet(self, meta_table='meta_tablet'):
         self._collect(meta_table, 'tablets_sql')
