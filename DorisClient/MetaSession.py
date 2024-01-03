@@ -86,6 +86,8 @@ class DorisMeta(DorisSession):
                     item['table_name'] = table_name
                     if not item.get('DataSize'):
                         item['DataSize'] = item.get('localDataSize')  # meta key rename since 1.2
+                    if collect_type == 'tablets_sql':
+                        item['PartitionId'] = row.get('PartitionId')
                     item['update_time'] = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime())
                     data.append(item)
             except Exception as e:

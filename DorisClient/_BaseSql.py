@@ -34,6 +34,7 @@ limit 100000000
 MetaSql_tablets = """
 select database_name
 ,table_name
+,PartitionId
 ,concat('show tablets from ',database_name,'.',table_name,' partition ',PartitionName) as tablets_sql
 from meta_partition
 order by 1,2
