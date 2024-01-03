@@ -158,11 +158,12 @@ dm.create_tables()
 # collect table meta >> meta_table
 dm.collect_table()
 
-# collect tablet meta >> meta_tablet
-dm.collect_tablet()
-
 # collect partition meta >> meta_partition
 dm.collect_partition()
+
+# collect tablet meta >> meta_tablet 
+# deploy collect_partition
+dm.collect_tablet()
 
 # collect table size meta >> meta_size
 dm.collect_size()

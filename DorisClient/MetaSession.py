@@ -21,7 +21,7 @@
 import re
 import time
 from .BaseSession import DorisSession, DorisLogger
-from ._BaseSql import MetaSql, MetaDDL_Table, MetaDDL_Tablet, MetaDDL_Partition, MetaDDL_Size
+from ._BaseSql import MetaSql, MetaSql_tablets, MetaDDL_Table, MetaDDL_Tablet, MetaDDL_Partition, MetaDDL_Size
 
 
 class DorisMeta(DorisSession):
@@ -29,8 +29,9 @@ class DorisMeta(DorisSession):
     Recycle `show xxx from table` for each table to collect metadata
     """
 
-    def _base(self):
-        return self.read(MetaSql)
+    def _base(self, collect_type=''):
+        sql = MetaSql_tablets if collect_type == 'tablets_sql' else MetaSql
+        return self.read(sql)
 
     def create_tables(self):
         self.execute(MetaDDL_Table)
@@ -74,7 +75,7 @@ class DorisMeta(DorisSession):
     def _collect(self, meta_table, collect_type):
         self.execute(f'truncate table {meta_table}')
         data = []
-        for row in self._base():
+        for row in self._base(collect_type):
             database_name, table_name, sql = row['database_name'], row['table_name'], row[collect_type]
             if not sql:
                 continue
@@ -83,6 +84,8 @@ class DorisMeta(DorisSession):
                 for item in items:
                     item['database_name'] = database_name
                     item['table_name'] = table_name
+                    if not item.get('DataSize'):
+                        item['DataSize'] = item.get('localDataSize')  # meta key rename since 1.2
                     item['update_time'] = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime())
                     data.append(item)
             except Exception as e:
@@ -90,7 +93,7 @@ class DorisMeta(DorisSession):
             finally:
                 if len(data) >= 30000:
                     if self.streamload(meta_table, data):
-                       data.clear()
+                        data.clear()
                     else:
                         raise Exception("streamload error !!!")
         if data:

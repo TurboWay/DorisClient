@@ -28,7 +28,18 @@ select table_schema as database_name
 from information_schema.tables
 where table_type not in ('SYSTEM VIEW')
 order by 1,3,2
+limit 100000000
 """
+
+MetaSql_tablets = """
+select database_name
+,table_name
+,concat('show tablets from ',database_name,'.',table_name,' partition ',PartitionName) as tablets_sql
+from meta_partition
+order by 1,2
+limit 100000000
+"""
+
 
 MetaDDL_Table = """
 CREATE TABLE IF NOT EXISTS `meta_table` (
@@ -56,6 +67,7 @@ MetaDDL_Tablet = """
 CREATE TABLE IF NOT EXISTS `meta_tablet` (
   `database_name` varchar(64) NULL COMMENT "databse name",
   `table_name` varchar(128) NULL COMMENT "table name",
+  `PartitionId` bigint(20) NULL,
   `TabletId` bigint(20) NULL COMMENT "",
   `ReplicaId` bigint(20) NULL COMMENT "",
   `BackendId` bigint(20) NULL COMMENT "",
