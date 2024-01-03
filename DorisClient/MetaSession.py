@@ -84,10 +84,11 @@ class DorisMeta(DorisSession):
                 for item in items:
                     item['database_name'] = database_name
                     item['table_name'] = table_name
-                    if not item.get('DataSize'):
-                        item['DataSize'] = item.get('localDataSize')  # meta key rename since 1.2
+                    if item.get('LocalDataSize'):
+                        item['DataSize'] = item.get('LocalDataSize')  # meta key rename since 1.2
                     if collect_type == 'tablets_sql':
                         item['PartitionId'] = row.get('PartitionId')
+                        item['PartitionName'] = row.get('PartitionName')
                     item['update_time'] = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime())
                     data.append(item)
             except Exception as e:
