@@ -52,7 +52,7 @@ def Logger(name=__name__, filename=None, level='INFO', filemode='a'):
     return logger
 
 
-DorisLogger = Logger(name='DorisClient')
+DorisLogger = Logger(name=__name__)
 
 
 def Retry(*args, **kwargs):
@@ -177,6 +177,7 @@ class DorisSession:
     def execute(self, sql, args=None):
         self._connect()
         with self.conn.cursor() as cur:
+            DorisLogger.debug(f'executing ...\n{sql}')
             cur.execute(sql, args)
             self.conn.commit()
         return True
@@ -184,6 +185,7 @@ class DorisSession:
     def read(self, sql, cursors=pymysql.cursors.DictCursor, args=None):
         self._connect()
         with self.conn.cursor(cursors) as cur:
+            DorisLogger.debug(f'executing ...\n{sql}')
             cur.execute(sql, args)
             return cur.fetchall()
 

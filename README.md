@@ -168,3 +168,29 @@ dm.collect_tablet()
 # collect table size meta >> meta_size
 dm.collect_size()
 ```
+
+
+## modify buckets
+
+```python
+from DorisClient import DorisAdmin
+
+# # debug
+# import logging
+# logger = logging.getLogger()
+# logger.setLevel(logging.DEBUG) 
+
+doris_cfg = {
+    'fe_servers': ['10.211.7.131:8030', '10.211.7.132:8030', '10.211.7.133:8030'],
+    'database': 'testdb',
+    'user': 'test',
+    'passwd': '123456',
+}
+da = DorisAdmin(**doris_cfg)
+
+# modify the number and method of buckets for the specified table
+da.modify(database_name='testdb', table_name='streamload_test', distribution_key='id,shop_code', buckets=1)
+
+# modify the number and method of buckets for partition
+da.modify(database_name='testdb', table_name='partition_tb', partition_name='p20231214', buckets=2)
+```

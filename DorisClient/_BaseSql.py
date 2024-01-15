@@ -19,6 +19,8 @@
 # under the License.
 
 MetaSql = """
+select *
+from(
 select table_schema as database_name
 ,table_name
 ,table_type
@@ -27,6 +29,8 @@ select table_schema as database_name
 ,if(table_type='VIEW', '', concat('show tablets from ',table_schema,'.',table_name)) as tablets_sql
 from information_schema.tables
 where table_type not in ('SYSTEM VIEW')
+) s
+where 1=1
 order by 1,3,2
 limit 100000000
 """
@@ -38,6 +42,7 @@ select database_name
 ,PartitionName
 ,concat('show tablets from ',database_name,'.',table_name,' partition ',PartitionName) as tablets_sql
 from meta_partition
+where 1=1 
 order by 1,2
 limit 100000000
 """
@@ -79,7 +84,7 @@ CREATE TABLE IF NOT EXISTS `meta_tablet` (
   `LstSuccessVersion` bigint(20) NULL COMMENT "",
   `LstFailedVersion` bigint(20) NULL COMMENT "",
   `LstFailedTime` datetime NULL COMMENT "",
-  `DataSize` varchar(64) NULL COMMENT "",
+  `DataSize` bigint(20) NULL COMMENT "",
   `RowCount` bigint(20) NULL COMMENT "",
   `State` varchar(64) NULL COMMENT "",
   `LstConsistencyCheckTime` datetime NULL COMMENT "",

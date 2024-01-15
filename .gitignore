@@ -2,3 +2,4 @@
 /dist/
 /DorisClient.egg-info/
 /.idea/
+/test.py
