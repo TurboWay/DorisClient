@@ -91,8 +91,13 @@ class DorisAdmin(DorisSession):
         old_distribution_key = re.sub('`|\(|\)|HASH| ', '', old_distribution_key)
         old_buckets = re.findall('BUCKETS (\d+)', ddl)[0]
         if partition_name:
-            row = self.read(f"show partitions from {table_name} where PartitionName='{partition_name}'")[0]
-            old_distribution_key, old_buckets = row['DistributionKey'], row['Buckets']
+            rows = self.read(f"show partitions from {table_name} where PartitionName='{partition_name}'")
+            if rows:
+                row = rows[0]
+                old_distribution_key, old_buckets = row['DistributionKey'], row['Buckets']
+            else:
+                log.warning(f"Partition {partition_name} does not exist !")
+                return
 
         # check diff
         buckets = buckets if buckets else self.get_buckets(database_name, table_name)
@@ -143,7 +148,7 @@ class DorisAdmin(DorisSession):
             single partition
             """
             tmp_partition = f"{partition_name}_tmp"
-            partition_values = re.findall(f'PARTITION {partition_name} (VALUES .*),', ddl)[0].replace(partition_name,tmp_partition)
+            partition_values = re.findall(f'PARTITION {partition_name} (VALUES .*)[,|\)|\]]', ddl)[0].replace(partition_name,tmp_partition)
             # 1.create temp_partition
             tmp_ddl = f"alter table {table_name} add temporary partition {tmp_partition} {partition_values} DISTRIBUTED BY {old_distribution_key} BUCKETS {buckets}"
             log.info(f'【{log_name}】create temp_partition {tmp_partition} ...')
