@@ -24,21 +24,16 @@ from .BaseSession import DorisSession, Logger
 
 log = Logger(name=__name__)
 
+
 class DorisAdmin(DorisSession):
 
-    def _tobyte(self, i):
-        size_dict = {
-            'KB': 1024, 'MB': 1024 ** 2, 'GB': 1024 ** 3, 'TB': 1024 ** 4, 'PB': 1024 ** 5
-        }
-        for key, val in size_dict.items():
-            if i.endswith(key):
-                return float(i.split(' ')[0]) * val
-        else:
-            return i
-
-    def get_buckets(self, database_name, table_name):
-        size = self.read(f'show data from {database_name}.{table_name}')[0]['Size']
-        buckets = math.ceil(self._tobyte(size) / 524288000)  # Add one bucket for every 500M
+    def get_buckets(self, database_name, table_name, partition_name):
+        if not partition_name:
+            partition_name = table_name
+        rows = self.read(f'show tablets from {database_name}.{table_name} partition {partition_name}')
+        items = { row['TabletId']: int(row.get('LocalDataSize', row.get('DataSize'))) for row in rows }
+        size = sum(items.values())
+        buckets = math.ceil(size / 524288000)  # Add one bucket for every 500M
         return buckets
 
     def check(self, log_name, table_name, partition_name=None):
@@ -60,7 +55,6 @@ class DorisAdmin(DorisSession):
             log.error(f'【{log_name}】check fail \n{sql} !!!')
             raise Exception
 
-
     def modify(self, **kwargs):
         """
         Modify the number and method of buckets for the specified table or partition
@@ -79,7 +73,7 @@ class DorisAdmin(DorisSession):
         database_name = kwargs.get('database_name')
         table_name = kwargs.get('table_name')
         partition_name = kwargs.get('partition_name')
-        distribution_key = kwargs.get('distribution_key', '').replace('`','').strip()
+        distribution_key = kwargs.get('distribution_key', '').replace('`', '').strip()
         buckets = kwargs.get('buckets')
         assert all([database_name, table_name]), '`database_name` and `table_name` cannot be empty !!!'
         if buckets:
@@ -100,7 +94,10 @@ class DorisAdmin(DorisSession):
                 return
 
         # check diff
-        buckets = buckets if buckets else self.get_buckets(database_name, table_name)
+        buckets = buckets if buckets else self.get_buckets(database_name, table_name, partition_name)
+        if buckets == 0:
+            log.error("Cannot assign hash distribution buckets less than 1")
+            return
         if distribution_key.upper() == old_distribution_key.upper() and buckets == int(old_buckets):
             log.warning("nothing changed !")
             return
@@ -148,7 +145,7 @@ class DorisAdmin(DorisSession):
             single partition
             """
             tmp_partition = f"{partition_name}_tmp"
-            partition_values = re.findall(f'PARTITION {partition_name} (VALUES .*)[,|\)|\]]', ddl)[0].replace(partition_name,tmp_partition)
+            partition_values = re.findall(f'PARTITION {partition_name} (VALUES .*)[,|\)|\]]', ddl)[0].replace(partition_name, tmp_partition)
             # 1.create temp_partition
             tmp_ddl = f"alter table {table_name} add temporary partition {tmp_partition} {partition_values} DISTRIBUTED BY {old_distribution_key} BUCKETS {buckets}"
             log.info(f'【{log_name}】create temp_partition {tmp_partition} ...')
