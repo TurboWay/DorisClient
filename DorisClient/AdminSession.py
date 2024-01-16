@@ -158,6 +158,7 @@ class DorisAdmin(DorisSession):
             log.info(f'【{log_name}】check the number of records in two partitions ...')
             self.check(log_name, table_name, partition_name)
             # 3.replace partition with the temp_partition
+            log.info(f'【{log_name}】replace {partition_name} with {tmp_partition}...')
             replace_sql = f"alter table {table_name} replace partition {partition_name} with temporary partition {tmp_partition};"
             self.execute(replace_sql)
             log.info(f'【{log_name}】({old_distribution_key} {old_buckets}) >> ({old_distribution_key} {buckets})')
