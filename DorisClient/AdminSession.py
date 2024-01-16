@@ -28,9 +28,10 @@ log = Logger(name=__name__)
 class DorisAdmin(DorisSession):
 
     def get_buckets(self, database_name, table_name, partition_name):
-        if not partition_name:
-            partition_name = table_name
-        rows = self.read(f'show tablets from {database_name}.{table_name} partition {partition_name}')
+        sql = f'show tablets from {database_name}.{table_name}'
+        if partition_name:
+            sql += f' partition {partition_name}'
+        rows = self.read(sql)
         items = { row['TabletId']: int(row.get('LocalDataSize', row.get('DataSize'))) for row in rows }
         size = sum(items.values())
         buckets = math.ceil(size / 524288000)  # Add one bucket for every 500M
