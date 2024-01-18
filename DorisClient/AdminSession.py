@@ -123,7 +123,7 @@ class DorisAdmin(DorisSession):
             else:
                 distribution_key = old_distribution_key
             tmp_tb = f'{table_name}_tmp'
-            tmp_ddl = ddl.replace(table_name, tmp_tb)
+            tmp_ddl = ddl.replace(f'TABLE `{table_name}`', f'TABLE `{tmp_tb}`')
             tmp_ddl = re.sub('DISTRIBUTED BY .*? BUCKETS \d+', f'DISTRIBUTED BY {distribution_key} BUCKETS {buckets}',tmp_ddl)
             tmp_ddl = re.sub('"dynamic_partition.buckets" = "\d+"', f'"dynamic_partition.buckets" = "{buckets}"',tmp_ddl)
             # 1.create new table
