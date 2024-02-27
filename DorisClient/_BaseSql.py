@@ -22,8 +22,8 @@ MetaSql = """
 select *
 from(
 select table_schema as database_name
-,table_name
-,table_type
+,table_name as table_name
+,table_type as table_type
 ,if(table_type='VIEW', concat('show create view ',table_schema,'.',table_name), concat('show create table ',table_schema,'.',table_name)) as ddl_sql
 ,if(table_type='VIEW', '', concat('show partitions from ',table_schema,'.',table_name)) as partitions_sql
 ,if(table_type='VIEW', '', concat('show tablets from ',table_schema,'.',table_name)) as tablets_sql

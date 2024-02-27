@@ -168,7 +168,7 @@ class DorisMeta(DorisSession):
         delete_sql, _ = self._delete_sql(meta_table, **kwargs)
         database_name = kwargs.get('database_name', '')
         filter = f" and schema_name='{database_name}'" if database_name else ''
-        sql = f"select schema_name from information_schema.schemata where schema_name <> 'information_schema' {filter} order by 1"
+        sql = f"select schema_name as schema_name from information_schema.schemata where schema_name <> 'information_schema' {filter} order by 1"
         rows = self.read(sql)
         data = []
         for row in rows:
