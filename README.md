@@ -193,4 +193,7 @@ da.modify(database_name='testdb', table_name='streamload_test', distribution_key
 
 # modify the number and method of buckets for partition
 da.modify(database_name='testdb', table_name='partition_tb', partition_name='p20231214', buckets=2)
+
+# only rebuild table 
+da.modify(database_name='testdb', table_name='streamload_test', only_rebuild=True, ignore_properties='in_memory')
 ```

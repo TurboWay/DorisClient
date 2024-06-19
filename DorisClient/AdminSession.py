@@ -70,12 +70,16 @@ class DorisAdmin(DorisSession):
             partition_name       default none, change table by default
             distribution_key     default none, change nothing by default
             buckets              default none, use self.get_buckets to calculate a number
+            only_rebuild         default False
+            ignore_properties    default none, eg: in_memory
         """
         database_name = kwargs.get('database_name')
         table_name = kwargs.get('table_name')
         partition_name = kwargs.get('partition_name')
         distribution_key = kwargs.get('distribution_key', '').replace('`', '').strip()
         buckets = kwargs.get('buckets')
+        only_rebuild = kwargs.get('only_rebuild', False)
+        ignore_properties = kwargs.get('ignore_properties')
         assert all([database_name, table_name]), '`database_name` and `table_name` cannot be empty !!!'
         if buckets:
             assert isinstance(buckets, int), '`buckets` only accept int value !!!'
@@ -95,11 +99,14 @@ class DorisAdmin(DorisSession):
                 return
 
         # check diff
-        buckets = buckets if buckets else self.get_buckets(database_name, table_name, partition_name)
+        if only_rebuild:
+            buckets = int(old_buckets)
+        else:
+            buckets = buckets if buckets else self.get_buckets(database_name, table_name, partition_name)
         if buckets == 0:
             log.error("Cannot assign hash distribution buckets less than 1")
             return
-        if distribution_key.upper() == old_distribution_key.upper() and buckets == int(old_buckets):
+        if distribution_key.upper() == old_distribution_key.upper() and buckets == int(old_buckets) and only_rebuild is False:
             log.warning("nothing changed !")
             return
         if partition_name:
@@ -126,6 +133,9 @@ class DorisAdmin(DorisSession):
             tmp_ddl = ddl.replace(f'TABLE `{table_name}`', f'TABLE `{tmp_tb}`')
             tmp_ddl = re.sub('DISTRIBUTED BY .*? BUCKETS \d+', f'DISTRIBUTED BY {distribution_key} BUCKETS {buckets}',tmp_ddl)
             tmp_ddl = re.sub('"dynamic_partition.buckets" = "\d+"', f'"dynamic_partition.buckets" = "{buckets}"',tmp_ddl)
+            if ignore_properties:
+                for ignore_propertie in ignore_properties.split(','):
+                    tmp_ddl = re.sub(f'"{ignore_propertie}" = ".*?",', '', tmp_ddl)
             # 1.create new table
             log.info(f'【{log_name}】create table {tmp_tb} ...')
             self.execute(tmp_ddl)
