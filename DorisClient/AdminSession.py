@@ -72,6 +72,7 @@ class DorisAdmin(DorisSession):
             buckets              default none, use self.get_buckets to calculate a number
             only_rebuild         default False
             ignore_properties    default none, eg: in_memory
+            add_properties       default none, eg: "enable_unique_key_merge_on_write"="true"
         """
         database_name = kwargs.get('database_name')
         table_name = kwargs.get('table_name')
@@ -80,6 +81,7 @@ class DorisAdmin(DorisSession):
         buckets = kwargs.get('buckets')
         only_rebuild = kwargs.get('only_rebuild', False)
         ignore_properties = kwargs.get('ignore_properties')
+        add_properties = kwargs.get('add_properties')
         assert all([database_name, table_name]), '`database_name` and `table_name` cannot be empty !!!'
         if buckets:
             assert isinstance(buckets, int), '`buckets` only accept int value !!!'
@@ -134,8 +136,10 @@ class DorisAdmin(DorisSession):
             tmp_ddl = re.sub('DISTRIBUTED BY .*? BUCKETS \d+', f'DISTRIBUTED BY {distribution_key} BUCKETS {buckets}',tmp_ddl)
             tmp_ddl = re.sub('"dynamic_partition.buckets" = "\d+"', f'"dynamic_partition.buckets" = "{buckets}"',tmp_ddl)
             if ignore_properties:
-                for ignore_propertie in ignore_properties.split(','):
-                    tmp_ddl = re.sub(f'"{ignore_propertie}" = ".*?",', '', tmp_ddl)
+                for ignore_property in ignore_properties.split(','):
+                    tmp_ddl = re.sub(f'"{ignore_property}" = ".*?",', '', tmp_ddl)
+            if add_properties:
+                tmp_ddl = tmp_ddl.replace(');', f',{add_properties});')
             # 1.create new table
             log.info(f'【{log_name}】create table {tmp_tb} ...')
             self.execute(tmp_ddl)
