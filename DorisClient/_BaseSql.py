@@ -62,12 +62,7 @@ CREATE TABLE IF NOT EXISTS `meta_table` (
   `update_time` datetime NULL COMMENT "update_time"
 ) ENGINE=OLAP
 COMMENT "meta of tables/views"
-DISTRIBUTED BY HASH(`table_name`) BUCKETS 1
-PROPERTIES (
-"replication_allocation" = "tag.location.default: 3",
-"in_memory" = "false",
-"storage_format" = "V2"
-);
+DISTRIBUTED BY HASH(`table_name`) BUCKETS 1;
 """
 
 MetaDDL_Tablet = """
@@ -97,12 +92,7 @@ CREATE TABLE IF NOT EXISTS `meta_tablet` (
 ) ENGINE=OLAP
 DUPLICATE KEY(`database_name`)
 COMMENT "meta of table tablets"
-DISTRIBUTED BY HASH(`table_name`) BUCKETS 1
-PROPERTIES (
-"replication_allocation" = "tag.location.default: 3",
-"in_memory" = "false",
-"storage_format" = "V2"
-);
+DISTRIBUTED BY HASH(`table_name`) BUCKETS 1;
 """
 
 MetaDDL_Partition = """
@@ -128,12 +118,7 @@ CREATE TABLE IF NOT EXISTS `meta_partition` (
   `update_time` datetime NULL COMMENT "update time"
 ) ENGINE=OLAP
 COMMENT "meta of table partitions"
-DISTRIBUTED BY HASH(`table_name`) BUCKETS 1
-PROPERTIES (
-"replication_allocation" = "tag.location.default: 3",
-"in_memory" = "false",
-"storage_format" = "V2"
-);
+DISTRIBUTED BY HASH(`table_name`) BUCKETS 1;
 """
 
 MetaDDL_Size = """
@@ -146,10 +131,17 @@ CREATE TABLE IF NOT EXISTS `meta_size` (
   `update_time` datetime NULL COMMENT "update time"
 ) ENGINE=OLAP
 COMMENT "meta of table size"
-DISTRIBUTED BY HASH(`table_name`) BUCKETS 1
-PROPERTIES (
-"replication_allocation" = "tag.location.default: 3",
-"in_memory" = "false",
-"storage_format" = "V2"
-);
+DISTRIBUTED BY HASH(`table_name`) BUCKETS 1;
+"""
+
+MetaDDL_Table_Count = """
+CREATE TABLE IF NOT EXISTS `meta_table_count` (
+  `database_name` varchar(64) NULL COMMENT 'databse name',
+  `table_name` varchar(128) NULL COMMENT 'table name',
+  `table_rows` bigint(20) NULL COMMENT 'max replica row count',
+  `real_table_rows` bigint(20) NULL COMMENT 'real row count',
+  `update_time` datetime NULL COMMENT 'update_time'
+) ENGINE=OLAP
+COMMENT 'meta of table rows'
+DISTRIBUTED BY HASH(`table_name`) BUCKETS 1;
 """

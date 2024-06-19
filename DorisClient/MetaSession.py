@@ -21,7 +21,7 @@
 import re
 import time
 from .BaseSession import DorisSession, Logger
-from ._BaseSql import MetaSql, MetaSql_tablets, MetaDDL_Table, MetaDDL_Tablet, MetaDDL_Partition, MetaDDL_Size
+from ._BaseSql import MetaSql, MetaSql_tablets, MetaDDL_Table, MetaDDL_Tablet, MetaDDL_Partition, MetaDDL_Size, MetaDDL_Table_Count
 
 log = Logger(name=__name__)
 
@@ -56,6 +56,7 @@ class DorisMeta(DorisSession):
         self.execute(MetaDDL_Partition)
         self.execute(MetaDDL_Tablet)
         self.execute(MetaDDL_Size)
+        self.execute(MetaDDL_Table_Count)
 
     def collect_table(self, meta_table='meta_table', ignore_view=True, **kwargs):
         """
@@ -188,3 +189,40 @@ class DorisMeta(DorisSession):
             self.execute(f'use {self.database}')
             self.execute(delete_sql)
             self.streamload(meta_table, data)
+
+    def collect_table_count(self, meta_table='meta_table_count', **kwargs):
+        """
+        select count(1) from table  ==> meta_table_count
+        param **kwargs:
+            database_name    filter condition, default None
+        """
+        delete_sql, _ = self._delete_sql(meta_table, **kwargs)
+        filter = f"and table_schema='{kwargs.get('database_name')}'" if kwargs.get('database_name') else ''
+        self.execute(delete_sql)
+        sql = f"""
+        select table_schema, table_name
+        from information_schema.tables 
+        where table_type = 'BASE TABLE' 
+        and `ENGINE` = 'Doris'
+        and table_schema not in ('__internal_schema') {filter}
+        order by table_schema, table_name
+        limit 10000000
+        """
+        rows = self.read(sql)
+        items = []
+        for px, row in enumerate(rows, 1):
+            table_schema, table_name = row['table_schema'], row['table_name']
+            sql = f"""
+            select a.table_schema as database_name
+            ,a.table_name as table_name
+            ,a.table_rows as table_rows
+            ,s.real_table_rows as real_table_rows
+            ,date_format(now(), '%Y-%m-%d %H:%i:%S') as update_time 
+            from information_schema.tables a
+            cross join (select count(1) as real_table_rows from {table_schema}.`{table_name}`) s
+            where a.table_schema = '{table_schema}'
+            and a.table_name = '{table_name}'
+            """
+            items += self.read(sql)
+            log.info(f"【{px}/{len(rows)}】{table_schema}.{table_name} count success")
+        self.streamload(meta_table, items)

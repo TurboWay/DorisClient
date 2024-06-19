@@ -153,6 +153,7 @@ dm = DorisMeta(**doris_cfg)
 # 2. meta_tablet for saving all tablet meta
 # 3. meta_partition for saving all partition meta
 # 4. meta_size for saving all table size meta
+# 5. meta_table_count for saving all table row count
 dm.create_tables()
 
 # collect table meta >> meta_table
@@ -167,6 +168,9 @@ dm.collect_tablet()
 
 # collect table size meta >> meta_size
 dm.collect_size()
+
+# collect table row count >> meta_table_count
+dm.collect_table_count()
 ```
 
 
