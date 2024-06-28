@@ -79,15 +79,16 @@ class DorisMeta(DorisSession):
                 if sql.startswith('show create table'):
                     engine = re.findall('ENGINE=(.*)', ddl)
                     model = re.findall('(.*) KEY\(', ddl)
-                    replication_num = re.findall('replication_allocation.*(\d+)', ddl)
                     bucket_num = re.findall('BUCKETS (\d+)', ddl)
                     properties = re.findall('PROPERTIES \((.*)\)', ddl, re.S)
+                    properties = '{' + properties[0].replace(' = ', ':').replace('\n', '') + '}' if properties else '{}'
+                    replication_num = re.findall('tag\.location\.[^,]+: (\d+)', eval(properties).get('replication_allocation'))
                     row.update({
                         'engine': engine[0] if engine else '',
                         'model': model[0] if model else '',
-                        'replication_num': replication_num[0] if replication_num else 0,
+                        'replication_num': sum([int(i) for i in replication_num]),
                         'bucket_num': bucket_num[0] if bucket_num else 0,
-                        'properties': '{' + properties[0].replace(' = ', ':').replace('\n','') + '}' if properties else ''
+                        'properties': properties
                     })
             except Exception as e:
                 log.warning(f"{row['database_name']}.{row['table_name']} meta error, {e}")
