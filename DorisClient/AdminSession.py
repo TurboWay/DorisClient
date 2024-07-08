@@ -102,7 +102,7 @@ class DorisAdmin(DorisSession):
 
         # check diff
         if only_rebuild:
-            buckets = int(old_buckets)
+            buckets = buckets if buckets else int(old_buckets)
         else:
             buckets = buckets if buckets else self.get_buckets(database_name, table_name, partition_name)
         if buckets == 0:
