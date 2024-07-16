@@ -24,9 +24,9 @@ from(
 select table_schema as database_name
 ,table_name as table_name
 ,table_type as table_type
-,if(table_type='VIEW', concat('show create view ',table_schema,'.',table_name), concat('show create table ',table_schema,'.',table_name)) as ddl_sql
-,if(table_type='VIEW', '', concat('show partitions from ',table_schema,'.',table_name)) as partitions_sql
-,if(table_type='VIEW', '', concat('show tablets from ',table_schema,'.',table_name)) as tablets_sql
+,if(table_type='VIEW', concat('show create view `',table_schema,'`.`',table_name,'`'), concat('show create table `',table_schema,'`.`',table_name, '`')) as ddl_sql
+,if(table_type='VIEW', '', concat('show partitions from `',table_schema,'`.`',table_name, '`')) as partitions_sql
+,if(table_type='VIEW', '', concat('show tablets from `',table_schema,'`.`',table_name, '`')) as tablets_sql
 from information_schema.tables
 where table_type not in ('SYSTEM VIEW')
 ) s
@@ -40,7 +40,7 @@ select database_name
 ,table_name
 ,PartitionId
 ,PartitionName
-,concat('show tablets from ',database_name,'.',table_name,' partition ',PartitionName) as tablets_sql
+,concat('show tablets from `',database_name,'`.`',table_name,'` partition `',PartitionName, '`') as tablets_sql
 from meta_partition
 where 1=1 
 order by 1,2
