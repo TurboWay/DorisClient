@@ -28,9 +28,9 @@ log = Logger(name=__name__)
 class DorisAdmin(DorisSession):
 
     def get_buckets(self, database_name, table_name, partition_name):
-        sql = f'show tablets from {database_name}.{table_name}'
+        sql = f'show tablets from `{database_name}`.`{table_name}`'
         if partition_name:
-            sql += f' partition {partition_name}'
+            sql += f' partition `{partition_name}`'
         rows = self.read(sql)
         items = { row['TabletId']: int(row.get('LocalDataSize', row.get('DataSize'))) for row in rows }
         size = sum(items.values())
@@ -39,10 +39,10 @@ class DorisAdmin(DorisSession):
 
     def check(self, log_name, table_name, partition_name=None):
         if partition_name:
-            tb = f'{table_name} partition {partition_name}'
-            tb_tmp = f'{table_name} temporary partition {partition_name}_tmp'
+            tb = f'`{table_name}` partition `{partition_name}`'
+            tb_tmp = f'`{table_name}` temporary partition {partition_name}_tmp'
         else:
-            tb, tb_tmp = table_name, f'{table_name}_tmp'
+            tb, tb_tmp = f'`{table_name}`', f'{table_name}_tmp'
         sql = f"""
         select distinct ct
         from(
@@ -87,12 +87,12 @@ class DorisAdmin(DorisSession):
             assert isinstance(buckets, int), '`buckets` only accept int value !!!'
         # get old config
         self.execute(f'use {database_name};')
-        ddl = self.read(f"show create table {table_name}")[0]['Create Table']
+        ddl = self.read(f"show create table `{table_name}`")[0]['Create Table']
         old_distribution_key = re.findall('DISTRIBUTED BY (.*?) BUCKETS', ddl)[0]
         old_distribution_key = re.sub('`|\(|\)|HASH| ', '', old_distribution_key)
         old_buckets = re.findall('BUCKETS (\d+)', ddl)[0]
         if partition_name:
-            rows = self.read(f"show partitions from {table_name} where PartitionName='{partition_name}'")
+            rows = self.read(f"show partitions from `{table_name}` where PartitionName='{partition_name}'")
             if rows:
                 row = rows[0]
                 old_distribution_key, old_buckets = row['DistributionKey'], row['Buckets']
@@ -144,14 +144,14 @@ class DorisAdmin(DorisSession):
             log.info(f'【{log_name}】create table {tmp_tb} ...')
             self.execute(tmp_ddl)
             # 2.insert into new table
-            insert_sql = f'insert into {tmp_tb} select * from {table_name};'
+            insert_sql = f'insert into `{tmp_tb}` select * from `{table_name}`;'
             log.info(f'【{log_name}】insert into {tmp_tb} ...')
             self.execute(insert_sql)
             log.info(f'【{log_name}】check the number of records in two tables ...')
             self.check(log_name, table_name)
             # 3.replace table with new table
             log.info(f'【{log_name}】replace {table_name} with {tmp_tb}...')
-            replace_sql = f"alter table {table_name} replace with table {tmp_tb} properties('swap' = 'false');"
+            replace_sql = f"alter table `{table_name}` replace with table `{tmp_tb}` properties('swap' = 'false');"
             self.execute(replace_sql)
             log.info(f'【{log_name}】({old_distribution_key} {old_buckets}) >> ({distribution_key} {buckets})')
             log.info(f'【{log_name}】changed success')
@@ -167,13 +167,13 @@ class DorisAdmin(DorisSession):
             self.execute(tmp_ddl)
             # 2.insert into temp_partition from partition
             log.info(f'【{log_name}】insert into {tmp_partition} ...')
-            insert_sql = f"insert into {table_name} temporary partition {tmp_partition} select * from {table_name} partition {partition_name}"
+            insert_sql = f"insert into `{table_name}` temporary partition `{tmp_partition}` select * from `{table_name}` partition `{partition_name}`"
             self.execute(insert_sql)
             log.info(f'【{log_name}】check the number of records in two partitions ...')
             self.check(log_name, table_name, partition_name)
             # 3.replace partition with the temp_partition
             log.info(f'【{log_name}】replace {partition_name} with {tmp_partition}...')
-            replace_sql = f"alter table {table_name} replace partition {partition_name} with temporary partition {tmp_partition};"
+            replace_sql = f"alter table `{table_name}` replace partition `{partition_name}` with temporary partition `{tmp_partition}`;"
             self.execute(replace_sql)
             log.info(f'【{log_name}】({old_distribution_key} {old_buckets}) >> ({old_distribution_key} {buckets})')
             log.info(f'【{log_name}】changed success')
