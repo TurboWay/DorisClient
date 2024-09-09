@@ -145,3 +145,16 @@ CREATE TABLE IF NOT EXISTS `meta_table_count` (
 COMMENT 'meta of table rows'
 DISTRIBUTED BY HASH(`table_name`) BUCKETS 1;
 """
+
+MetaDDL_Materialized_View = """
+CREATE TABLE IF NOT EXISTS `meta_materialized_view` (
+  `database_name` varchar(64) NULL COMMENT 'databse name',
+  `table_name` varchar(128) NULL COMMENT 'table name',
+  `view_name` varchar(128) NULL COMMENT 'view_name',
+  `ddl` text NULL COMMENT 'create stmt',
+  `update_time` datetime NULL COMMENT 'update_time'
+) ENGINE=OLAP
+UNIQUE KEY(`database_name`, `table_name`, `view_name`)
+COMMENT 'meta of materialized view'
+DISTRIBUTED BY HASH(`table_name`) BUCKETS 1;
+"""
