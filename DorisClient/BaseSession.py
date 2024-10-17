@@ -177,7 +177,7 @@ class DorisSession:
     def execute(self, sql, args=None):
         self._connect()
         with self.conn.cursor() as cur:
-            DorisLogger.debug(f'executing ...\n{sql}')
+            DorisLogger.debug(f'executing ...\n\n{sql}\n')
             cur.execute(sql, args)
             self.conn.commit()
         return True
