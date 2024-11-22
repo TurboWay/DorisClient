@@ -154,7 +154,8 @@ dm = DorisMeta(**doris_cfg)
 # 3. meta_partition for saving all partition meta
 # 4. meta_size for saving all table size meta
 # 5. meta_table_count for saving all table row count
-# 6. materialized_view for saving all materialized view
+# 6. meta_materialized_view for saving all materialized view
+# 6. meta_backup for saving all backup view
 dm.create_tables()
 
 # collect table meta >> meta_table
@@ -175,6 +176,9 @@ dm.collect_table_count()
 
 # collect materialized view meta >> meta_materialized_view
 dm.collect_materialized_view(only_insert=True)
+
+# collect backup meta >> meta_backup
+dm.collect_backup()
 ```
 
 

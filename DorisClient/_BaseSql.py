@@ -158,3 +158,25 @@ UNIQUE KEY(`database_name`, `table_name`, `view_name`)
 COMMENT 'meta of materialized view'
 DISTRIBUTED BY HASH(`table_name`) BUCKETS 1;
 """
+
+MetaDDL_Backup = """
+CREATE TABLE IF NOT EXISTS `meta_backup` (
+  `SnapshotName` varchar(128) NULL COMMENT 'SnapshotName',
+  `DbName` varchar(128) NULL COMMENT 'DbName',
+  `State` varchar(128) NULL COMMENT 'Statev',
+  `BackupObjs` text NULL COMMENT 'BackupObjs',
+  `CreateTime` datetime NULL COMMENT 'CreateTime',
+  `SnapshotFinishedTime` datetime NULL COMMENT 'SnapshotFinishedTime',
+  `UploadFinishedTime` datetime NULL COMMENT 'UploadFinishedTime',
+  `FinishedTime` datetime NULL COMMENT 'FinishedTime',
+  `UnfinishedTasks` text NULL COMMENT 'UnfinishedTasks',
+  `Progress` varchar(128) NULL COMMENT 'Progress',
+  `TaskErrMsg` text NULL COMMENT 'TaskErrMsg',
+  `Status` varchar(128) NULL COMMENT 'Status',
+  `backup_timestamp` varchar(128) NULL COMMENT 'backup_timestamp version',
+  `update_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'update_time'
+) ENGINE=OLAP
+DUPLICATE KEY(`SnapshotName`)
+COMMENT 'meta of backup'
+DISTRIBUTED BY HASH(`SnapshotName`) BUCKETS 1
+"""

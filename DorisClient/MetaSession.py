@@ -21,9 +21,11 @@
 import re
 import time
 from .BaseSession import DorisSession, Logger
-from ._BaseSql import MetaSql, MetaSql_tablets, MetaDDL_Table, MetaDDL_Tablet, MetaDDL_Partition, MetaDDL_Size, MetaDDL_Table_Count, MetaDDL_Materialized_View
+from ._BaseSql import MetaSql, MetaSql_tablets, MetaDDL_Table, MetaDDL_Tablet, MetaDDL_Partition, MetaDDL_Size, \
+    MetaDDL_Table_Count, MetaDDL_Materialized_View, MetaDDL_Backup
 
 log = Logger(name=__name__)
+
 
 class DorisMeta(DorisSession):
     """
@@ -58,6 +60,7 @@ class DorisMeta(DorisSession):
         self.execute(MetaDDL_Size)
         self.execute(MetaDDL_Table_Count)
         self.execute(MetaDDL_Materialized_View)
+        self.execute(MetaDDL_Backup)
 
     def collect_table(self, meta_table='meta_table', ignore_view=True, **kwargs):
         """
@@ -83,7 +86,8 @@ class DorisMeta(DorisSession):
                     bucket_num = re.findall('BUCKETS (\d+)', ddl)
                     properties = re.findall('PROPERTIES \((.*)\)', ddl, re.S)
                     properties = '{' + properties[0].replace(' = ', ':').replace('\n', '') + '}' if properties else '{}'
-                    replication_num = re.findall('tag\.location\.[^,]+: (\d+)', eval(properties).get('replication_allocation'))
+                    replication_num = re.findall('tag\.location\.[^,]+: (\d+)',
+                                                 eval(properties).get('replication_allocation'))
                     row.update({
                         'engine': engine[0] if engine else '',
                         'model': model[0] if model else '',
@@ -263,9 +267,38 @@ class DorisMeta(DorisSession):
                         item = {
                             'database_name': table_schema,
                             'table_name': table_name,
-                            'view_name' : view_name,
+                            'view_name': view_name,
                             'ddl': rows[0]['CreateStmt'],
                             'update_time': time.strftime('%Y-%m-%d %H:%M:%S', time.localtime())
                         }
                         items.append(item)
+        self.streamload(meta_table, items)
+
+    def collect_backup(self, meta_table='meta_backup'):
+        """
+        select count(1) from table  ==> meta_table_count
+        param **kwargs:
+            database_name    filter condition, default None
+        """
+        delete_sql, _ = self._delete_sql(meta_table)
+        self.execute(delete_sql)
+        rows = self.read('show repositories;')
+        snapshot_version = {}
+        for row in rows:
+            snapshots = self.read(f"show snapshot on {row['RepoName']};")
+            for i in snapshots:
+                snapshot, version = i['Snapshot'], i['Timestamp']
+                snapshot_version[snapshot] = version
+
+        rows = self.read('show databases;')
+        items = []
+        for row in rows:
+            database = row['Database']
+            if database == '__internal_schema':
+                continue
+            backups = self.read(f"show backup from {database};")
+            for item in backups:
+                item['backup_timestamp'] = snapshot_version.get(item['SnapshotName'])
+                items.append(item)
+
         self.streamload(meta_table, items)
