@@ -170,7 +170,7 @@ CREATE TABLE IF NOT EXISTS `meta_backup` (
   `UploadFinishedTime` datetime NULL COMMENT 'UploadFinishedTime',
   `FinishedTime` datetime NULL COMMENT 'FinishedTime',
   `UnfinishedTasks` text NULL COMMENT 'UnfinishedTasks',
-  `Progress` varchar(128) NULL COMMENT 'Progress',
+  `Progress` text NULL COMMENT 'Progress',
   `TaskErrMsg` text NULL COMMENT 'TaskErrMsg',
   `Status` varchar(128) NULL COMMENT 'Status',
   `backup_timestamp` varchar(128) NULL COMMENT 'backup_timestamp version',
