@@ -37,6 +37,20 @@ class DorisAdmin(DorisSession):
         buckets = math.ceil(size / 524288000)  # Add one bucket for every 500M
         return buckets
 
+    def get_columns(self, database_name, table_name, mock_seq_column):
+        sql = f"""select group_concat(column_name order by ordinal_position) as column_str
+        from information_schema.columns 
+        where table_schema = '{database_name}' 
+        and table_name = '{table_name}'
+        """
+        column_str = self.read(sql)[0]['column_str']
+        if mock_seq_column is not None:
+            target_column = f"{column_str}, __DORIS_SEQUENCE_COL__"
+            select_column = f"{column_str}, '{mock_seq_column}' as __DORIS_SEQUENCE_COL__"
+            return target_column, select_column
+        else:
+            return column_str, column_str
+
     def check(self, log_name, table_name, partition_name=None):
         if partition_name:
             tb = f'`{table_name}` partition `{partition_name}`'
@@ -73,6 +87,10 @@ class DorisAdmin(DorisSession):
             only_rebuild         default False
             ignore_properties    default none, eg: in_memory
             add_properties       default none, eg: "enable_unique_key_merge_on_write"="true"
+            mock_seq_column      In certain versions like 2.0.14, even if the structures of tb1 and tb2 are identical,
+                                 the "INSERT INTO tb2 SELECT * FROM tb1 " query may still result in an error.
+                                 In this case, you may need to mock the sequence column
+                                 default none, eg: '0', '1970-01-01'
         """
         database_name = kwargs.get('database_name')
         table_name = kwargs.get('table_name')
@@ -82,6 +100,7 @@ class DorisAdmin(DorisSession):
         only_rebuild = kwargs.get('only_rebuild', False)
         ignore_properties = kwargs.get('ignore_properties')
         add_properties = kwargs.get('add_properties')
+        mock_seq_column = kwargs.get('mock_seq_column')
         assert all([database_name, table_name]), '`database_name` and `table_name` cannot be empty !!!'
         if buckets:
             assert isinstance(buckets, int), '`buckets` only accept int value !!!'
@@ -144,7 +163,8 @@ class DorisAdmin(DorisSession):
             log.info(f'【{log_name}】create table {tmp_tb} ...')
             self.execute(tmp_ddl)
             # 2.insert into new table
-            insert_sql = f'insert into `{tmp_tb}` select * from `{table_name}`;'
+            target_column, select_column = self.get_columns(database_name, table_name, mock_seq_column)
+            insert_sql = f'insert into `{tmp_tb}`({target_column}) select {select_column} from `{table_name}`;'
             log.info(f'【{log_name}】insert into {tmp_tb} ...')
             self.execute(insert_sql)
             log.info(f'【{log_name}】check the number of records in two tables ...')
@@ -166,8 +186,9 @@ class DorisAdmin(DorisSession):
             log.info(f'【{log_name}】create temp_partition {tmp_partition} ...')
             self.execute(tmp_ddl)
             # 2.insert into temp_partition from partition
+            target_column, select_column = self.get_columns(database_name, table_name, mock_seq_column)
+            insert_sql = f"insert into `{table_name}` temporary partition `{tmp_partition}` ({target_column}) select {select_column} from `{table_name}` partition `{partition_name}`"
             log.info(f'【{log_name}】insert into {tmp_partition} ...')
-            insert_sql = f"insert into `{table_name}` temporary partition `{tmp_partition}` select * from `{table_name}` partition `{partition_name}`"
             self.execute(insert_sql)
             log.info(f'【{log_name}】check the number of records in two partitions ...')
             self.check(log_name, table_name, partition_name)
